@@ -1,0 +1,399 @@
+openapi: 3.0.0
+info:
+  title: Weather Microservice API
+  description: Microservicio API REST para obtener, almacenar y administrar datos climáticos en tiempo real, orientado a aplicaciones en entornos agrícolas y análisis de tendencias meteorológicas.
+  version: "1.0"
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor local para pruebas
+
+paths:
+  /weather:
+    get:
+      tags:
+        - Datos Climáticos
+      summary: Obtener datos climáticos por ubicación
+      parameters:
+        - in: query
+          name: latitude
+          schema:
+            type: number
+          required: true
+          description: Latitud de la ubicación
+        - in: query
+          name: longitude
+          schema:
+            type: number
+          required: true
+          description: Longitud de la ubicación
+      responses:
+        "200":
+          description: Respuesta exitosa con datos climáticos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  temperature:
+                    type: number
+                    description: Temperatura en grados Celsius
+                  humidity:
+                    type: number
+                    description: Humedad en porcentaje
+                  wind_speed:
+                    type: number
+                    description: Velocidad del viento en km/h
+                  precipitation:
+                    type: number
+                    description: Nivel de precipitación en mm
+        "400":
+          description: Petición inválida (parámetros faltantes o malformados)
+        "500":
+          description: Error interno del servidor
+      security:
+        - apiKeyAuth: []
+      x-throttling:
+        enabled: true
+        limit: 100 requests per hour
+
+    post:
+      tags:
+        - Datos Climáticos
+      summary: Crear un nuevo registro de datos climáticos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  description: Latitud de la ubicación
+                longitude:
+                  type: number
+                  description: Longitud de la ubicación
+                temperature:
+                  type: number
+                  description: Temperatura en grados Celsius
+                humidity:
+                  type: number
+                  description: Humedad en porcentaje
+                wind_speed:
+                  type: number
+                  description: Velocidad del viento en km/h
+                precipitation:
+                  type: number
+                  description: Nivel de precipitación en mm
+      responses:
+        "201":
+          description: Registro creado con éxito
+        "400":
+          description: Petición inválida (parámetros faltantes o malformados)
+        "500":
+          description: Error interno del servidor
+
+  /weather/all:
+    get:
+      tags:
+        - Datos Climáticos
+      summary: Obtener todos los registros almacenados
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+            description: Número de registros a devolver (para paginación)
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+            description: Desplazamiento inicial (para paginación)
+      responses:
+        "200":
+          description: Lista de todos los registros climáticos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    location:
+                      type: object
+                      properties:
+                        latitude:
+                          type: number
+                        longitude:
+                          type: number
+                    temperature:
+                      type: number
+                    humidity:
+                      type: number
+                    wind_speed:
+                      type: number
+                    precipitation:
+                      type: number
+                    timestamp:
+                      type: string
+                      format: date-time
+        "500":
+          description: Error interno del servidor
+
+  /weather/forecast:
+    get:
+      tags:
+        - Pronóstico Climático
+      summary: Obtener pronóstico del clima para una ubicación específica
+      parameters:
+        - in: query
+          name: latitude
+          schema:
+            type: number
+          required: true
+          description: Latitud de la ubicación
+        - in: query
+          name: longitude
+          schema:
+            type: number
+          required: true
+          description: Longitud de la ubicación
+      responses:
+        "200":
+          description: Respuesta exitosa con pronóstico del clima
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  forecast:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                          description: Fecha del pronóstico
+                        temperature:
+                          type: number
+                          description: Temperatura en grados Celsius
+                        humidity:
+                          type: number
+                          description: Humedad en porcentaje
+                        wind_speed:
+                          type: number
+                          description: Velocidad del viento en km/h
+                        precipitation:
+                          type: number
+                          description: Nivel de precipitación en mm
+        "400":
+          description: Petición inválida (parámetros faltantes o malformados)
+        "500":
+          description: Error interno del servidor
+
+  /weather/{id}:
+    get:
+      tags:
+        - Datos Climáticos
+      summary: Obtener un registro específico de datos climáticos
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Identificador único del registro climático en formato UUID
+      responses:
+        "200":
+          description: Registro encontrado con éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  location:
+                    type: object
+                    properties:
+                      latitude:
+                        type: number
+                      longitude:
+                        type: number
+                  temperature:
+                    type: number
+                  humidity:
+                    type: number
+                  wind_speed:
+                    type: number
+                  precipitation:
+                    type: number
+                  timestamp:
+                    type: string
+                    format: date-time
+        "400":
+          description: Petición inválida (ID malformado)
+        "404":
+          description: Registro no encontrado
+        "500":
+          description: Error interno del servidor
+
+    put:
+      tags:
+        - Datos Climáticos
+      summary: Actualizar un registro específico de datos climáticos
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Identificador único del registro climático en formato UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                temperature:
+                  type: number
+                  description: Nueva temperatura en grados Celsius
+                humidity:
+                  type: number
+                  description: Nueva humedad en porcentaje
+                wind_speed:
+                  type: number
+                  description: Nueva velocidad del viento en km/h
+                precipitation:
+                  type: number
+                  description: Nuevo nivel de precipitación en mm
+      responses:
+        "200":
+          description: Registro actualizado con éxito
+        "400":
+          description: Petición inválida (parámetros faltantes o malformados)
+        "404":
+          description: Registro no encontrado
+        "500":
+          description: Error interno del servidor
+
+    delete:
+      tags:
+        - Datos Climáticos
+      summary: Eliminar un registro específico de datos climáticos
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Identificador único del registro climático en formato UUID
+      responses:
+        "200":
+          description: Registro eliminado con éxito
+        "404":
+          description: Registro no encontrado
+        "500":
+          description: Error interno del servidor
+
+  /auth/register:
+    post:
+      tags:
+        - Autenticación
+      summary: Registrar un nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Nombre de usuario
+                password:
+                  type: string
+                  description: Contraseña del usuario
+      responses:
+        "201":
+          description: Usuario registrado con éxito
+        "400":
+          description: Petición inválida (parámetros faltantes o malformados)
+        "500":
+          description: Error interno del servidor
+
+  /auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión de un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Nombre de usuario
+                password:
+                  type: string
+                  description: Contraseña del usuario
+      responses:
+        "200":
+          description: Inicio de sesión exitoso, devuelve token de autenticación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Token JWT de autenticación
+        "400":
+          description: Petición inválida (parámetros faltantes o malformados)
+        "401":
+          description: Credenciales inválidas
+        "429":
+          description: Demasiados intentos fallidos, intente más tarde
+        "500":
+          description: Error interno del servidor
+      x-throttling:
+        enabled: true
+        limit: 10 requests per minute
+
+  /weather/history:
+    get:
+      tags:
+        - Historial Climático
+      summary: Obtener historial de datos climáticos
+      parameters:
+        - in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+          required: true
+          description: Fecha de inicio para el rango del historial
+        - in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+          required: true
+          description: Fecha de fin para el rango del historial
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
